@@ -23,7 +23,7 @@ public float fuerzaImpulso = 5f; //fuerza aplicada al saltar
     private bool saltoPendiente;
 
     private bool estaTocandoSuelo;
-    private float longitudRayCast = 1f;
+    private float longitudRayCast = 1.6f;
 
     //se va a ejecutar aunque el script no esté activo.Los métodos Awake se ejecutan antes que el Start.
     private void Awake()
@@ -43,8 +43,13 @@ public float fuerzaImpulso = 5f; //fuerza aplicada al saltar
         entradaX = accionMover.action.ReadValue<Vector2>();
 
         RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, longitudRayCast, capaSuelo);
+        estaTocandoSuelo = hit.collider != null;
 
-        if (accionSaltar.action.WasPressedThisFrame())
+        Color colorRayo = estaTocandoSuelo ? Color.green : Color.red;
+
+        Debug.DrawRay(transform.position, Vector2.down * longitudRayCast, colorRayo);
+
+        if (accionSaltar.action.WasPressedThisFrame() && estaTocandoSuelo)
         {
             saltoPendiente = true;
         }
