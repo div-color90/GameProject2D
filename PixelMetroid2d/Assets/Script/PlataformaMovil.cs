@@ -44,7 +44,7 @@ public class PlataformaMovil : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        Vector2 destino = haciaB ? (Vector2)puntoB.position : (Vector2)puntoA.position;
+        Vector2 destino = haciaB ? (Vector2)puntoB.position : (Vector2)puntoA.position;  
         if(Vector2.Distance(fisica.position, destino)<= tolerancia)
         {
             haciaB = !haciaB;
