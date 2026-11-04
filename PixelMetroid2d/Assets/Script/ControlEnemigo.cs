@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 
@@ -69,5 +70,21 @@ public class ControlEnemigo : MonoBehaviour
         }
             Vector2 siguiente = Vector2.MoveTowards(fisica.position, posicionObjetivo, velocidad * Time.fixedDeltaTime);
         fisica.MovePosition(siguiente);
+
+        
+    }
+    private void OnCollisionEnter2D(Collision2D colision)
+    {
+        if (!colision.gameObject.CompareTag("Player")) return;
+        if(colision.gameObject.TryGetComponent(out MovimientoJugador jugador))
+        {
+            jugador.ReaparecerJugador();
+
+        }
+        else
+        {
+            Debug.LogError("El objetivo player necesita ControlJugador en la raíz");
+        }
+
     }
 }

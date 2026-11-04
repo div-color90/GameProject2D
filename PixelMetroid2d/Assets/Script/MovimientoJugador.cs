@@ -23,6 +23,7 @@ public class MovimientoJugador : MonoBehaviour // permite usar el script como co
     //LayerMask es un selector de capas. Sirve para decirle al raycast que solo considere como suelos los objetos de esta capa.
     [SerializeField] private LayerMask capaSuelo;
 public float fuerzaImpulso = 5f; //fuerza aplicada al saltar
+    [SerializeField] private Transform spawnPoint;
 
     private Rigidbody2D fisica;
     private SpriteRenderer renderizador;
@@ -162,6 +163,20 @@ public float fuerzaImpulso = 5f; //fuerza aplicada al saltar
             renderizador.flipX = true;
         }
 
+    }
+
+    public void ReaparecerJugador()
+    {
+        if (spawnPoint == null)
+        {
+            Debug.Log("Asigna un Spawn Point al objeto jugador", this);
+            enabled = false;
+            return;
+        }
+      
+
+        fisica.position = (Vector2)spawnPoint.position;
+        fisica.linearVelocity = Vector2.zero;
     }
 
 
