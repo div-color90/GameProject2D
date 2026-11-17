@@ -25,6 +25,29 @@ public class MovimientoJugador : MonoBehaviour // permite usar el script como co
 public float fuerzaImpulso = 5f; //fuerza aplicada al saltar
     [SerializeField] private Transform spawnPoint;
 
+    [Header("Puntuación")]
+    [SerializeField] private int puntuacion;
+
+    [Header("Vida")]
+    [SerializeField] private int vidas = 3;
+    public int Vidas => vidas; //Propiedad de solo lectura para acceder a las vidas del jugador desde otros scripts
+    bool vulnerable = true;
+
+    [Header("Color")]
+    private Color colorOriginal;
+    [SerializeField, Min(0.01f)] private float segundosInvulnerable = 1f;
+
+    [Header("Tiempo")]
+    private float tiempoInicio;
+    private float tiempoReal;
+    [SerializeField] private int tiempoLimiteNivel = 100; // Tiempo límite en segundos
+    [SerializeField] private float tiempoEmpleado;
+
+    [Header("Canvas")]
+    [SerializeField] private Canvas canvasInterfaz;
+    private ControlHUD hud;
+
+
     private Rigidbody2D fisica;
     private SpriteRenderer renderizador;
     private Animator animador;
@@ -35,6 +58,9 @@ public float fuerzaImpulso = 5f; //fuerza aplicada al saltar
     private float longitudRayCast = 1.6f;
 
     private float umbralCarrera = 0.1f;
+
+
+ 
 
     //se va a ejecutar aunque el script no esté activo.Los métodos Awake se ejecutan antes que el Start. 
     //Se ejecuta una vez al cargarse el objeto/script. Sirve para inicializar componentes
@@ -50,7 +76,13 @@ public float fuerzaImpulso = 5f; //fuerza aplicada al saltar
     // Se ejecuta antes del primer Update una sola vez y solo si el script está activado y el GameObject también. Inicializa cosas que dependan de otros objetos.
     void Start()
     {
-        
+        if (renderizador != null)
+        {
+            colorOriginal = renderizador.color; // Guardar el color original del sprite al inicio
+        }
+
+        tiempoInicio = Time.time;
+        InicializaHud();
     }
 
     // Update is called once per frame. aqui leeo el valor y en el fixedupdate aplico la física
@@ -61,10 +93,10 @@ public float fuerzaImpulso = 5f; //fuerza aplicada al saltar
     {
         entradaX = accionMover.action.ReadValue<Vector2>();
 
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, longitudRayCast, capaSuelo);
-        estaTocandoSuelo = hit.collider != null;
+        // RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, longitudRayCast, capaSuelo);
+        //estaTocandoSuelo = hit.collider != null;
 
-        Color colorRayo = estaTocandoSuelo ? Color.green : Color.red;
+        /*Color colorRayo = estaTocandoSuelo ? Color.green : Color.red;
 
         Debug.DrawRay(transform.position, Vector2.down * longitudRayCast, colorRayo);
 
@@ -72,11 +104,63 @@ public float fuerzaImpulso = 5f; //fuerza aplicada al saltar
         {
             saltoPendiente = true;
         }
+        */
 
+        comprobarFinJuegoTiempo();
+        SaltoJugador();
 
         AnimarJugador();
+        
     }
 
+    private void SaltoJugador()
+    {
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, longitudRayCast, capaSuelo);
+
+        estaTocandoSuelo = hit.collider != null;
+
+        Color colorRayo = estaTocandoSuelo ? Color.green : Color.red;
+        Debug.DrawRay(transform.position, Vector2.down * longitudRayCast, colorRayo);
+
+        if (accionSaltar.action.WasPressedThisFrame() && estaTocandoSuelo)
+        {
+            saltoPendiente = true;
+        }
+    }
+    private void comprobarFinJuegoTiempo()
+    {
+
+        tiempoReal = Time.time - tiempoInicio; // Calcular el tiempo transcurrido desde el inicio del nivel
+        tiempoEmpleado = Mathf.FloorToInt(tiempoReal); // Convertir el tiempo transcurrido a un valor entero
+        int segundosRestantes = Mathf.CeilToInt(tiempoLimiteNivel - tiempoReal);
+        hud.SetTiempo(segundosRestantes);
+        hud.SetPowerUps(GameObject.FindGameObjectsWithTag("PowerUp").Length);
+        if (tiempoEmpleado >= tiempoLimiteNivel)
+        {
+            FinJuego();
+        }
+    }
+
+
+    private void InicializaHud()
+    {
+        if (canvasInterfaz != null)
+        {
+            hud = canvasInterfaz.GetComponent<ControlHUD>();
+        }
+        else
+            Debug.LogError("Asigna el objeto con el componente ControlHUD al atributo Canvas del Jugador.");
+
+        if (hud != null)
+        {
+            hud.SetVidas(vidas);
+            hud.SetTiempo(tiempoLimiteNivel); // pasarme esta parte del codigo
+            hud.SetPowerUps(GameObject.FindGameObjectsWithTag("PowerUp").Length);
+        }
+        else
+            Debug.LogError("Asigna el objeto con el componente ControlHUD al atributo Canvas del Jugador.");
+    }
+  
     private void AnimarJugador()
     {
         if (animador == null)
@@ -136,14 +220,15 @@ public float fuerzaImpulso = 5f; //fuerza aplicada al saltar
     // si necesitamos tiempo usamos Time.fixedDeltaTime.
     private void FixedUpdate()
     {
-        fisica.linearVelocity = new Vector2(entradaX.x * velocity, fisica.linearVelocity.y);
+        /* fisica.linearVelocity = new Vector2(entradaX.x * velocity, fisica.linearVelocity.y);
 
         if (saltoPendiente)
         {
             fisica.AddForce(Vector2.up * fuerzaImpulso, ForceMode2D.Impulse);
         }
-        saltoPendiente = false;
+        saltoPendiente = false;*/
 
+        MoverJugador();
 
         OrientarSprite();
     }
@@ -164,6 +249,17 @@ public float fuerzaImpulso = 5f; //fuerza aplicada al saltar
         }
 
     }
+    private void MoverJugador()
+    {
+        fisica.linearVelocity = new Vector2(entradaX.x * velocity, fisica.linearVelocity.y);
+
+        if (saltoPendiente && estaTocandoSuelo)
+        {
+            fisica.AddForce(Vector2.up * fuerzaImpulso, ForceMode2D.Impulse);
+
+        }
+        saltoPendiente = false;
+    }
 
     public void ReaparecerJugador()
     {
@@ -179,6 +275,47 @@ public float fuerzaImpulso = 5f; //fuerza aplicada al saltar
         fisica.linearVelocity = Vector2.zero;
     }
 
+    public void IncrementarPuntos(int cantidad)
+    {
+        // Lógica para incrementar los puntos del jugador
+        if (cantidad <= 0)
+        {
+            puntuacion += 1;
+            hud.SetPowerUps(GameObject.FindGameObjectsWithTag("PowerUp").Length);
+        }
+    }
+  public void QuitarVida()
+    {
+        if (!vulnerable) return;
+        vulnerable = false;
+        vidas--;
+
+        hud.SetVidas(vidas);
+
+        if(renderizador!= null)
+        {
+            renderizador.color = Color.blue;
+        }
+        if(vidas <= 0)
+        {
+            FinJuego();
+            return;
+        }
+        Invoke(nameof(HacerVulnerable), segundosInvulnerable);
+    }
+    private void HacerVulnerable()
+    {
+        vulnerable = true; // El jugador vuelve a ser vulnerable
+        if (renderizador != null)
+        {
+            renderizador.color = colorOriginal; // Restaura el color original del sprite
+        }
+    }
+    public void FinJuego()
+    {
+        Debug.Log("Juego finalizado");
+        gameObject.SetActive(false);
+    }
 
     //Ciclo de vida en Unity: Awake, OnEnable, Start, FixedUpdate / Update y OnDisable
 }
