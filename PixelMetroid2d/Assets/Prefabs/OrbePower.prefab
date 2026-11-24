@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4093781223228841142}
+  - component: {fileID: 7094903399821478467}
   m_Layer: 0
   m_Name: OrbePower
   m_TagString: Untagged
@@ -32,6 +33,20 @@ Transform:
   - {fileID: 7820917203732694601}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7094903399821478467
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4435338902932777037}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3267600a99ca35840865c3d8e915cc7c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ControlPowerUp
+  cantidad: 2
+  recogerSonido: {fileID: 8300000, guid: 4ccc60a68fa50a64a91ce0a5c6eeeebd, type: 3}
 --- !u!1 &8685993424633156259
 GameObject:
   m_ObjectHideFlags: 0
@@ -161,6 +176,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControlPowerUp
   cantidad: 2
+  recogerSonido: {fileID: 0}
 --- !u!70 &1599605042962674439
 CapsuleCollider2D:
   m_ObjectHideFlags: 0

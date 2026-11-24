@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem; ////inputActionReference
 using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
 
 //unity le añade automáticamente un Rigibody2D
 
@@ -59,7 +60,14 @@ public float fuerzaImpulso = 5f; //fuerza aplicada al saltar
 
     private float umbralCarrera = 0.1f;
 
+    private ControlDatosJuegos controlDatosJuego;
 
+    [Header("Audio")]
+
+    [SerializeField] private AudioClip saltoSonido;
+    [SerializeField] private AudioClip vidasSonido;
+
+    private AudioSource efectoSonido;
  
 
     //se va a ejecutar aunque el script no esté activo.Los métodos Awake se ejecutan antes que el Start. 
@@ -82,6 +90,16 @@ public float fuerzaImpulso = 5f; //fuerza aplicada al saltar
         }
 
         tiempoInicio = Time.time;
+
+        controlDatosJuego = ControlDatosJuegos.Instancia;
+        if(controlDatosJuego == null)
+        {
+            Debug.LogError("Añade Datos Juego al nivel");
+        }
+        else
+        
+            controlDatosJuego.ReiniciarPartida();
+
         InicializaHud();
     }
 
@@ -257,6 +275,8 @@ public float fuerzaImpulso = 5f; //fuerza aplicada al saltar
         {
             fisica.AddForce(Vector2.up * fuerzaImpulso, ForceMode2D.Impulse);
 
+            if (saltoSonido != null)
+                efectoSonido.PlayOneShot(saltoSonido);
         }
         saltoPendiente = false;
     }
@@ -290,6 +310,10 @@ public float fuerzaImpulso = 5f; //fuerza aplicada al saltar
         vulnerable = false;
         vidas--;
 
+        if (vidasSonido != null)
+            efectoSonido.PlayOneShot(vidasSonido);
+
+
         hud.SetVidas(vidas);
 
         if(renderizador!= null)
@@ -313,8 +337,28 @@ public float fuerzaImpulso = 5f; //fuerza aplicada al saltar
     }
     public void FinJuego()
     {
-        Debug.Log("Juego finalizado");
-        gameObject.SetActive(false);
+        //Debug.Log("Juego finalizado");
+        //gameObject.SetActive(false);
+        if (controlDatosJuego)
+        {
+            Debug.LogError("Falta el objeto Control Datos Juego par apoder guar el resultado de la práctica", this);
+            return;
+        }
+
+        controlDatosJuego.GuardarResultado(false, 0);
+        SceneManager.LoadScene("FinNivel");
+
+    }
+
+    public void Victoria()
+    {
+        puntuacion = (int)(vidas * 100 + Mathf.Max(0, tiempoLimiteNivel - tiempoEmpleado));
+
+        saltoPendiente = false;
+        fisica.linearVelocity = Vector2.zero;
+
+        controlDatosJuego.GuardarResultado(true, puntuacion);
+        SceneManager.LoadScene("FinNivel");
     }
 
     //Ciclo de vida en Unity: Awake, OnEnable, Start, FixedUpdate / Update y OnDisable
